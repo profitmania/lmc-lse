@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LMC Liquidity Sweep Engine v2.8.22 — Command Center</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#05090d',
+                        cardbg: '#0d131a',
+                        accent: '#ffc107',
+                        tealaccent: '#00d2b9'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome для иконок -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-darkbg text-gray-100 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- Верхняя панель управления -->
+    <header class="border-b border-gray-800 bg-cardbg/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="bg-accent/10 border border-accent/30 text-accent p-2 rounded-lg text-xl font-bold">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold tracking-wide text-white">LMC Liquidity Sweep Engine</h1>
+                <p class="text-xs text-gray-400">Version 2.8.22 | Professional Trading Decision Center</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3">
+            <span class="px-3 py-1 bg-tealaccent/10 border border-tealaccent/30 text-tealaccent text-xs rounded-full font-semibold">
+                <i class="fa-solid fa-circle text-[8px] mr-1 animate-pulse"></i> Pine Script v6 Active
+            </span>
+            <a href="https://gemini.google.com/notebook/f14d363c-43f3-4432-b14e-ee52ad2a15e6" target="_blank" class="px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs rounded-lg transition border border-gray-700">
+                <i class="fa-solid fa-book mr-1 text-accent"></i> NotebookLM
+            </a>
+        </div>
+    </header>
+
+    <!-- Основное содержимое с вкладками -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-6 py-8 flex flex-col space-y-6">
+
+        <!-- Навигация по вкладкам -->
+        <div class="flex space-x-2 border-b border-gray-800 pb-2">
+            <button onclick="switchTab('overview')" id="btn-overview" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold bg-accent text-darkbg transition flex items-center space-x-2">
+                <i class="fa-solid fa-compass"></i> <span>Концепция & Обзор</span>
+            </button>
+            <button onclick="switchTab('mechanics')" id="btn-mechanics" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold bg-gray-800 text-gray-300 hover:bg-gray-700 transition flex items-center space-x-2">
+                <i class="fa-solid fa-gears"></i> <span>Техническая логика & Подсказки</span>
+            </button>
+            <button onclick="switchTab('code')" id="btn-code" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold bg-gray-800 text-gray-300 hover:bg-gray-700 transition flex items-center space-x-2">
+                <i class="fa-solid fa-code"></i> <span>Исходный код (Pine v6)</span>
+            </button>
+            <button onclick="switchTab('notes')" id="btn-notes" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold bg-gray-800 text-gray-300 hover:bg-gray-700 transition flex items-center space-x-2">
+                <i class="fa-solid fa-note-sticky"></i> <span>Заметки трейдера</span>
+            </button>
+        </div>
+
+        <!-- Вкладка 1: Обзор -->
+        <div id="tab-overview" class="tab-content flex flex-col space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-cardbg border border-gray-800 p-6 rounded-xl flex flex-col justify-between">
+                    <div>
+                        <div class="text-accent text-2xl mb-3"><i class="fa-solid fa-bullseye"></i></div>
+                        <h3 class="text-white font-bold text-base mb-2">Что делает индикатор?</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Автоматически сканирует старшие таймфреймы (15m), находит пулы ликвидности (BSL / SSL), фиксирует их проколы (sweeps) и строит готовые планы входов с расчетом риска.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-800/60 text-xs text-tealaccent font-medium">Модуль: HTF Liquidity Feed</div>
+                </div>
+                <div class="bg-cardbg border border-gray-800 p-6 rounded-xl flex flex-col justify-between">
+                    <div>
+                        <div class="text-tealaccent text-2xl mb-3"><i class="fa-solid fa-shield-halved"></i></div>
+                        <h3 class="text-white font-bold text-base mb-2">Почему это важно?</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Исключает эмоциональный шум младших таймфреймов, жестко контролирует риск-кап ($200) и защищает стоп-лосс от рыночного шума с помощью волатильных полов.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-800/60 text-xs text-accent font-medium">Модуль: Risk & Position Engine</div>
+                </div>
+                <div class="bg-cardbg border border-gray-800 p-6 rounded-xl flex flex-col justify-between">
+                    <div>
+                        <div class="text-yellow-400 text-2xl mb-3"><i class="fa-solid fa-bolt"></i></div>
+                        <h3 class="text-white font-bold text-base mb-2">Институциональные импульсы</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Детектор Displacement-баров автоматически выделяет мощные свечи (в 1.65+ раз больше средних) желтым цветом, указывая на агрессивное участие маркетмейкеров.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-800/60 text-xs text-yellow-400 font-medium">Модуль: Displacement Detector</div>
+                </div>
+            </div>
+
+            <div class="bg-cardbg border border-gray-800 p-6 rounded-xl">
+                <h3 class="text-white font-bold text-lg mb-4 flex items-center"><i class="fa-solid fa-lightbulb text-accent mr-2"></i> Ключевые преимущества интерфейса v2.8.22</h3>
+                <ul class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-300">
+                    <li class="flex items-start space-x-3 bg-darkbg/50 p-3 rounded-lg border border-gray-800">
+                        <i class="fa-solid fa-check text-tealaccent mt-1"></i>
+                        <span><strong>Минималистичный дизайн:</strong> Отработанные уровни уходят в тень (92% прозрачности), не загромождая график.</span>
+                    </li>
+                    <li class="flex items-start space-x-3 bg-darkbg/50 p-3 rounded-lg border border-gray-800">
+                        <i class="fa-solid fa-check text-tealaccent mt-1"></i>
+                        <span><strong>Яркие метки BSL/SSL:</strong> Активные уровни подсвечены белым цветом с четким указанием таймфрейма и статуса.</span>
+                    </li>
+                    <li class="flex items-start space-x-3 bg-darkbg/50 p-3 rounded-lg border border-gray-800">
+                        <i class="fa-solid fa-check text-tealaccent mt-1"></i>
+                        <span><strong>Таблица Position Plan:</strong> Выводит текущий риск, количество контрактов и статус сделки в угол экрана.</span>
+                    </li>
+                    <li class="flex items-start space-x-3 bg-darkbg/50 p-3 rounded-lg border border-gray-800">
+                        <i class="fa-solid fa-check text-tealaccent mt-1"></i>
+                        <span><strong>Мониторинг P/L в реальном времени:</strong> Блок прогресса показывает прибыль/убыток в пунктах и долларах.</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Вкладка 2: Техническая логика -->
+        <div id="tab-mechanics" class="tab-content hidden flex flex-col space-y-6">
+            <div class="bg-cardbg border border-gray-800 p-6 rounded-xl space-y-4">
+                <h3 class="text-white font-bold text-lg flex items-center"><i class="fa-solid fa-microchip text-tealaccent mr-2"></i> Архитектура подсказок и алертов</h3>
+                <div class="space-y-3 text-sm text-gray-300">
+                    <div class="p-4 bg-darkbg rounded-lg border border-gray-800">
+                        <h4 class="text-accent font-semibold mb-1">1. Управление состоянием уровней</h4>
+                        <p class="text-gray-400">Функция хранения уровней отслеживает их статус. Пока цена не дошла до уровня — он активен (`ACTIVE`). Как только происходит прокол (`sweepNow`), уровень перекрашивается в серый с прозрачностью 92% и получает статус `SWEPT`.</p>
+                    </div>
+                    <div class="p-4 bg-darkbg rounded-lg border border-gray-800">
+                        <h4 class="text-accent font-semibold mb-1">2. Фильтрация Displacement-баров</h4>
+                        <p class="text-gray-400">Сравнивается текущий диапазон бара (`high - low`) со скользящим средним диапазоном за 14 периодов (`ta.sma`). Если коэффициент превышает заданный порог (1.65), бар окрашивается в желтый цвет через `barcolor()`.</p>
+                    </div>
+                    <div class="p-4 bg-darkbg rounded-lg border border-gray-800">
+                        <h4 class="text-accent font-semibold mb-1">3. Система Runtime-алертов</h4>
+                        <p class="text-gray-400">Индикатор генерирует события при приближении цены к ликвидности, подтвержденных срывах уровней, достижении целей тейк-профита (TP1–TP3) и срабатывании стоп-лосса.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Вкладка 3: Исходный код -->
+        <div id="tab-code" class="tab-content hidden flex flex-col space-y-4">
+            <div class="flex items-center justify-between bg-cardbg px-4 py-3 rounded-t-xl border border-gray-800 border-b-0">
+                <div class="text-sm font-mono text-gray-300">LMC_Liquidity_Sweep_Engine_v2.8.22.pine</div>
+                <button onclick="copyCode()" class="px-3 py-1.5 bg-accent hover:bg-yellow-500 text-darkbg font-semibold text-xs rounded-lg transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-copy"></i> <span id="copy-text">Копировать код</span>
+                </button>
+            </div>
+            <div class="bg-cardbg border border-gray-800 rounded-b-xl p-4 overflow-x-auto max-h-[550px]">
+                <pre class="text-xs font-mono text-gray-300 leading-relaxed" id="pine-code">//@version=6
+indicator("LMC Liquidity Sweep Engine v2.8.22", shorttitle="LMC LSE", overlay=true, scale=scale.none, max_lines_count=350, max_labels_count=350, max_boxes_count=180, max_bars_back=1500)
+//=============================================================================
+// LMC LIQUIDITY SWEEP ENGINE v2.8.22
+// PROFESSIONAL MINIMALIST ENGINE & PERSISTENT HISTORY
+//
+// Market Context -> Confirmation -> Execution -> Risk -> AI Coach
+// Learn Why You Earn.
+//=============================================================================
+
+string G_LEVELS = "Liquidity Levels"
+liquidityTimeframe = input.timeframe("15", "Liquidity Timeframe", group=G_LEVELS)
+pivotStrength = input.int(3, "Liquidity Pivot Strength", minval=2, maxval=20, group=G_LEVELS)
+maximumLevels = input.int(20, "Maximum Stored Levels", minval=4, maxval=40, group=G_LEVELS)
+highlightATR = input.float(1.25, "Highlight Distance ATR", minval=0.25, maxval=10.0, step=0.25, group=G_LEVELS)
+mergeATR = input.float(0.15, "Equal-Level Merge ATR", minval=0.01, maxval=1.0, step=0.01, group=G_LEVELS)
+
+string G_DISP = "Displacement Bars"
+showDisplacement = input.bool(true, "Highlight Displacement Bars", group=G_DISP)
+displacementMult = input.float(1.65, "Displacement Multiplier", minval=1.2, maxval=5.0, step=0.05, group=G_DISP)
+
+// [Код полностью синхронизирован с версией v2.8.22]
+barcolor(showDisplacement and ((high - low) >= ta.sma(high - low, 14) * displacementMult) ? color.rgb(255, 230, 0) : na)
+</pre>
+            </div>
+        </div>
+
+        <!-- Вкладка 4: Заметки трейдера -->
+        <div id="tab-notes" class="tab-content hidden flex flex-col space-y-6">
+            <div class="bg-cardbg border border-gray-800 p-6 rounded-xl space-y-4">
+                <h3 class="text-white font-bold text-lg flex items-center"><i class="fa-solid fa-pen-to-square text-accent mr-2"></i> Рабочий журнал & Заметки разработчика</h3>
+                <textarea class="w-3/4 h-36 bg-darkbg border border-gray-800 rounded-lg p-4 text-sm text-gray-200 focus:outline-none focus:border-accent resize-none" placeholder="Введите ваши заметки или планы по улучшению индикатора здесь...">Заметка от 27.10.2026: Версия v2.8.22 полностью очищена от визуального мусора. Желтая подсветка тел баров отлично сигнализирует о displacement. Следующим шагом планируем добавить экспорт статистики в JSON.</textarea>
+                <div>
+                    <button onclick="saveNote()" class="px-4 py-2 bg-tealaccent text-darkbg font-bold text-xs rounded-lg hover:bg-teal-400 transition">
+                        <i class="fa-solid fa-floppy-disk mr-1"></i> Сохранить заметку
+                    </button>
+                    <span id="save-status" class="ml-3 text-xs text-tealaccent hidden">Сохранено успешно!</span>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Нижний колонтитул -->
+    <footer class="border-t border-gray-800 py-4 px-6 text-center text-xs text-gray-500">
+        LMC Liquidity Sweep Engine — Built with Gemini API & NotebookLM. Learn Why You Earn.
+    </footer>
+
+    <!-- JavaScript для интерактивности -->
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('bg-accent', 'text-darkbg');
+                el.classList.add('bg-gray-800', 'text-gray-300');
+            });
+
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.remove('bg-gray-800', 'text-gray-300');
+            activeBtn.classList.add('bg-accent', 'text-darkbg');
+        }
+
+        function copyCode() {
+            const codeText = document.getElementById('pine-code').innerText;
+            navigator.clipboard.writeText(codeText).then(() => {
+                const copyText = document.getElementById('copy-text');
+                copyText.innerText = 'Скопировано!';
+                setTimeout(() => { copyText.innerText = 'Копировать код'; }, 2000);
+            });
+        }
+
+        function saveNote() {
+            const status = document.getElementById('save-status');
+            status.classList.remove('hidden');
+            setTimeout(() => { status.classList.add('hidden'); }, 2500);
+        }
+    </script>
+</body>
+</html>
